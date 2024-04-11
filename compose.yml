@@ -1,0 +1,129 @@
+version: '3.8'
+
+services:
+  gluetun:
+    container_name: gluetun
+    image: qmcgaw/gluetun
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    volumes:
+      - /Documents/Servers/Gluetun:/Gluetun
+    environment:
+      - VPN_SERVICE_PROVIDER=private internet access
+      - OPENVPN_USER=x000000 # Your PIA User ID
+      - OPENVPN_PASSWORD=Password # Your PIA Password
+      - SERVER_REGIONS=Netherlands
+    ports:
+      - 7878:7878
+      - 8989:8989
+      - 9696:9696
+      - 5055:5055
+      - 4545:4545
+      - 6881:6881
+      - 6881:6881/udp
+      - 8080:8080
+    restart: unless-stopped
+
+  watchtower:
+    image: containrrr/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+
+  radarr:
+    image: linuxserver/radarr
+    container_name: radarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    volumes:
+      - /Documents/Servers/Radarr:/config
+    restart: unless-stopped
+    depends_on:
+      - gluetun
+
+  sonarr:
+    image: linuxserver/sonarr
+    container_name: sonarr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    volumes:
+      - /Documents/Servers/Sonarr:/config
+    restart: unless-stopped
+    depends_on:
+      - gluetun
+
+  prowlarr:
+    image: linuxserver/prowlarr
+    container_name: prowlarr
+    environment: 
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      - AUTO_UPDATE=true
+    volumes:
+      - /Documents/Servers/Prowlarr:/config
+    restart: unless-stopped
+    depends_on:
+      - gluetun
+
+  overseerr:
+    image: linuxserver/overseerr:latest
+    container_name: overseerr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    volumes:
+      - /Documents/Servers/Overseerr:/config
+    restart: unless-stopped
+    depends_on:
+      - gluetun
+
+  requestrr:
+    image: darkalfx/requestrr
+    container_name: requestrr
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+    volumes:
+      - /Documents/Servers/Requestrr:/root/config
+    restart: unless-stopped
+    depends_on:
+      - gluetun
+
+  plex-meta-manager:
+    image: linuxserver/plex-meta-manager:latest
+    container_name: plex-meta-manager
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      - PMM_CONFIG=/config/config.yml
+      - PMM_TIME=03:00
+      - PMM_RUN=False
+      - PMM_TEST=False
+      - PMM_NO_MISSING=False
+    volumes:
+      - /Documents/Servers/Plex-Meta-Manager/config:/config
+    restart: unless-stopped
+
+  qbittorrent:
+    image: linuxserver/qbittorrent
+    container_name: qbittorrent-movies
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      - WEBUI_PORT=8080
+    volumes:
+      - /Documents/Servers/Qbittorrent:/config
+    restart: unless-stopped
+    depends_on:
+      - gluetun
