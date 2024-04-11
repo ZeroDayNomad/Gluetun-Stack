@@ -23,7 +23,10 @@ services:
       - 4545:4545
       - 6881:6881
       - 6881:6881/udp
-      - 8080:8080
+      - 8086:8086
+      - 6882:6882
+      - 6882:6882/udp
+      - 8084:8084
     restart: unless-stopped
 
   watchtower:
@@ -42,6 +45,7 @@ services:
     volumes:
       - /Documents/Servers/Radarr:/config
     restart: unless-stopped
+    network_mode: service:gluetun
     depends_on:
       - gluetun
 
@@ -55,6 +59,7 @@ services:
     volumes:
       - /Documents/Servers/Sonarr:/config
     restart: unless-stopped
+    network_mode: service:gluetun
     depends_on:
       - gluetun
 
@@ -69,6 +74,7 @@ services:
     volumes:
       - /Documents/Servers/Prowlarr:/config
     restart: unless-stopped
+    network_mode: service:gluetun
     depends_on:
       - gluetun
 
@@ -82,6 +88,7 @@ services:
     volumes:
       - /Documents/Servers/Overseerr:/config
     restart: unless-stopped
+    network_mode: service:gluetun
     depends_on:
       - gluetun
 
@@ -95,6 +102,7 @@ services:
     volumes:
       - /Documents/Servers/Requestrr:/root/config
     restart: unless-stopped
+    network_mode: service:gluetun
     depends_on:
       - gluetun
 
@@ -114,16 +122,32 @@ services:
       - /Documents/Servers/Plex-Meta-Manager/config:/config
     restart: unless-stopped
 
-  qbittorrent:
+  qbittorrent-movies:
     image: linuxserver/qbittorrent
     container_name: qbittorrent-movies
     environment:
       - PUID=1000
       - PGID=1000
       - TZ=Etc/UTC
-      - WEBUI_PORT=8080
+      - WEBUI_PORT=8086
     volumes:
-      - /Documents/Servers/Qbittorrent:/config
+      - /Documents/Servers/Qbittorrent-Movies:/config
     restart: unless-stopped
+    network_mode: service:gluetun
+    depends_on:
+      - gluetun
+
+  qbittorrent-tv:
+    image: linuxserver/qbittorrent
+    container_name: qbittorrent-tv
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      - WEBUI_PORT=8084
+    volumes:
+      - /Documents/Servers/Qbittorrent-TV:/config
+    restart: unless-stopped
+    network_mode: service:gluetun
     depends_on:
       - gluetun
